@@ -1,0 +1,7 @@
+python -m PyInstaller --onefile --noconsole --name "PDF Text Editor" `
+--exclude-module PyQt5 `
+--exclude-module PySide6 `
+--add-data "assets/main.html;." `
+--add-data "assets;assets" `
+--icon=assets/icon.ico `
+app.py

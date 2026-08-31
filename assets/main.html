@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Text Editor</title>
+    <style>
+        /* ── reset & base ── */
+        :root {
+            --maroon: #7a0c0c;
+            --maroon-deep: #520808;
+            --gold: #b8862c;
+            --parchment: #f6f0e4;
+            --parchment-line: #e3d6bd;
+            --ink: #2c1a0e;
+            --ok: #3f6b3f;
+            --scrollbar-track: #f0eadc;
+            --scrollbar-thumb: #b8862c;
+            --scrollbar-thumb-hover: #7a0c0c;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif;
+            background:
+                radial-gradient(1200px 400px at 50% -10%, #fff8ea 0%, var(--parchment) 55%),
+                var(--parchment);
+            color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            transition: padding-bottom 0.25s ease;
+            overflow-y: auto;
+        }
+
+        /* ── SCROLLBAR STYLING ── */
+
+        /* WebKit / Blink */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 8px;
+            border: 1px solid rgba(184, 134, 44, 0.15);
+            box-shadow: inset 0 0 6px rgba(122, 12, 12, 0.04);
+        }
+
+        ::-webkit-scrollbar-track:hover {
+            background: #ede7d9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--gold) 0%, #a06e20 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(122, 12, 12, 0.2);
+            box-shadow: inset 0 1px 1px rgba(255, 245, 200, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background 0.2s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-deep) 100%);
+            border-color: rgba(122, 12, 12, 0.4);
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background: var(--maroon-deep);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: var(--scrollbar-track);
+        }
+
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold) var(--scrollbar-track);
+        }
+
+        /* ── icon helper ── */
+        .icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .icon-menu {
+            width: 22px;
+            height: 22px;
+        }
+        .icon-folder {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-lamp {
+            width: 42px;
+            height: 42px;
+        }
+        .icon-pencil {
+            width: 14px;
+            height: 14px;
+        }
+        .icon-keyboard {
+            width: 14px;
+            height: 14px;
+        }
+        .icon-keyboard-lg {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-btn {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* ── top bar ── */
+        .topbar {
+            background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-deep) 100%);
+            color: #f6e9c9;
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: auto;
+        }
+
+        .brand .brand-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .brand .brand-icon img {
+            width: 35px;
+            height: 35px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .brand h1 {
+            font-size: 16px;
+            margin: 0;
+            letter-spacing: .4px;
+            font-weight: 700;
+        }
+
+        .brand small {
+            display: block;
+            font-size: 10.5px;
+            color: #e3c98f;
+            letter-spacing: .5px;
+            font-weight: 400;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid rgba(246, 233, 201, .4);
+            background: rgba(255, 255, 255, .06);
+            color: #f6e9c9;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: background .15s, border-color .15s, transform .1s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, .14);
+            border-color: rgba(246, 233, 201, .7);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.primary {
+            background: var(--gold);
+            color: #3a2500;
+            border-color: var(--gold);
+        }
+
+        .btn.primary:hover {
+            background: #c8974a;
+        }
+
+        .btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .btn input[type=file] {
+            display: none;
+        }
+
+        .btn .btn-icon {
+            width: 25px;
+            height: 25px;
+            vertical-align: middle;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        .status {
+            font-size: 12px;
+            color: #e3c98f;
+            min-width: 120px;
+        }
+
+        .status.ok {
+            color: #bfe3bf;
+        }
+
+        /* ── stage ── */
+        .stage {
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: center;
+            padding: 28px 16px 60px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .stage::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .stage::-webkit-scrollbar-track {
+            background: rgba(246, 240, 228, 0.5);
+            border-radius: 6px;
+        }
+
+        .stage::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9b080 0%, #a88a4a 100%);
+            border-radius: 6px;
+        }
+
+        .stage::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--gold) 0%, var(--maroon) 100%);
+        }
+
+        .doc-wrap {
+            width: 100%;
+            max-width: 900px;
+            align-self: flex-start;
+        }
+
+        .edit-hint {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: #fffaf0;
+            border: 1px solid var(--parchment-line);
+            border-left: 4px solid var(--gold);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: #5c4321;
+            margin-bottom: 14px;
+        }
+
+        .edit-hint b {
+            color: var(--maroon);
+        }
+
+        .edit-hint .hint-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        .frame-shell {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .12), 0 1px 3px rgba(0, 0, 0, .08);
+            overflow: hidden;
+            min-height: 400px;
+            display: none;
+        }
+
+        iframe {
+            width: 100%;
+            border: 0;
+            display: block;
+            background: #fff;
+        }
+
+        iframe::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        iframe::-webkit-scrollbar-track {
+            background: #f5efe5;
+            border-radius: 6px;
+        }
+
+        iframe::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9b080 0%, #a88a4a 100%);
+            border-radius: 6px;
+            border: 1px solid rgba(122, 12, 12, 0.1);
+        }
+
+        iframe::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--gold) 0%, var(--maroon) 100%);
+        }
+
+        /* ── empty state ── */
+        .empty {
+            text-align: center;
+            padding: 70px 30px;
+            color: #8a7a5c;
+        }
+
+        .empty .empty-icon {
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+
+        .empty .empty-icon img {
+            width: 42px;
+            height: 42px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .empty h2 {
+            color: var(--maroon);
+            font-size: 19px;
+            margin: 0 0 8px;
+        }
+
+        .empty p {
+            font-size: 13.5px;
+            line-height: 1.6;
+            max-width: 420px;
+            margin: 0 auto 22px;
+        }
+
+        .empty .btn.primary {
+            padding: 11px 22px;
+            font-size: 14px;
+        }
+
+        footer.note {
+            text-align: center;
+            font-size: 11.5px;
+            color: #a5906a;
+            padding: 0 20px 30px;
+            flex-shrink: 0;
+        }
+
+        /* ── on-screen keyboard ── */
+        #kbPanel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #fffaf0 0%, var(--parchment) 100%);
+            border-top: 2px solid var(--gold);
+            box-shadow: 0 -8px 26px rgba(0, 0, 0, .22);
+            transform: translateY(105%);
+            transition: transform .22s ease;
+            z-index: 60;
+            max-height: 52vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #kbPanel.open {
+            transform: translateY(0);
+        }
+
+        #kbRows::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #kbRows::-webkit-scrollbar-track {
+            background: rgba(246, 240, 228, 0.4);
+            border-radius: 6px;
+        }
+
+        #kbRows::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9b080 0%, #a88a4a 100%);
+            border-radius: 6px;
+        }
+
+        #kbRows::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--gold) 0%, var(--maroon) 100%);
+        }
+
+        #kbRows {
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold) rgba(246, 240, 228, 0.4);
+        }
+
+        .kb-topline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--parchment-line);
+            background: rgba(184, 134, 44, .08);
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .kb-topline .kb-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--maroon);
+            margin-right: auto;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kb-topline .kb-title img {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            object-fit: contain;
+        }
+
+        #kbLangSelect {
+            font-size: 12.5px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--parchment-line);
+            background: #fff;
+            color: var(--ink);
+            max-width: 220px;
+        }
+
+        #kbHideBtn {
+            border: 1px solid var(--parchment-line);
+            background: #fff;
+            color: var(--maroon);
+            border-radius: 5px;
+            font-size: 13px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        #kbHideBtn:hover {
+            background: #fff3dc;
+        }
+
+        #kbRows {
+            padding: 8px 10px 4px;
+            overflow-y: auto;
+            flex: 1 1 auto;
+        }
+
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .kb-key {
+            appearance: none;
+            border: 1px solid var(--parchment-line);
+            background: #fff;
+            color: var(--ink);
+            min-width: 32px;
+            height: 38px;
+            padding: 0 6px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+            transition: background .1s, transform .05s;
+            touch-action: manipulation;
+        }
+
+        .kb-key:hover {
+            background: #fff3dc;
+        }
+
+        .kb-key:active {
+            background: var(--gold);
+            color: #3a2500;
+            transform: translateY(1px);
+        }
+
+        .kb-ctrl-row {
+            display: flex;
+            gap: 6px;
+            padding: 6px 10px 10px;
+            border-top: 1px solid var(--parchment-line);
+            background: rgba(184, 134, 44, .05);
+            flex-shrink: 0;
+        }
+
+        .kb-ctrl {
+            appearance: none;
+            border: 1px solid var(--parchment-line);
+            background: #fff;
+            color: var(--maroon);
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .kb-ctrl:hover {
+            background: #fff3dc;
+        }
+
+        .kb-ctrl.active {
+            background: var(--gold);
+            color: #3a2500;
+            border-color: var(--gold);
+        }
+
+        .kb-ctrl.kb-space {
+            flex: 1;
+        }
+
+        .kb-ctrl.kb-wide {
+            min-width: 64px;
+        }
+
+        /* ── floating "Open Keyboard" button ── */
+        #openKbBtn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 55;
+            background: var(--maroon);
+            color: #f6e9c9;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(122, 12, 12, .35);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            transition: transform .15s, box-shadow .15s;
+            touch-action: manipulation;
+            white-space: nowrap;
+        }
+
+        #openKbBtn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 28px rgba(122, 12, 12, .45);
+        }
+
+        #openKbBtn:active {
+            transform: scale(0.96);
+        }
+
+        #openKbBtn .kb-btn-icon {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        /* ── responsive tweaks ── */
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 10px 12px;
+                gap: 10px;
+            }
+
+            .brand h1 {
+                font-size: 14px;
+            }
+
+            .brand small {
+                font-size: 9px;
+            }
+
+            .btn {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .stage {
+                padding: 16px 10px 40px;
+            }
+
+            #openKbBtn {
+                bottom: 16px;
+                right: 16px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .kb-key {
+                min-width: 28px;
+                height: 34px;
+                font-size: 13px;
+                padding: 0 4px;
+            }
+
+            .kb-ctrl {
+                height: 36px;
+                font-size: 12px;
+                padding: 0 8px;
+            }
+
+            #kbLangSelect {
+                font-size: 11px;
+                max-width: 140px;
+            }
+
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+
+            .btn .btn-icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar .btn .btn-label {
+                display: none;
+            }
+
+            .topbar .btn {
+                padding: 6px 8px;
+            }
+
+            #openKbBtn {
+                bottom: 12px;
+                right: 12px;
+                padding: 8px 14px;
+                font-size: 12px;
+                border-radius: 30px;
+            }
+
+            .kb-key {
+                min-width: 24px;
+                height: 30px;
+                font-size: 11px;
+            }
+
+            .kb-ctrl {
+                height: 32px;
+                font-size: 11px;
+                padding: 0 6px;
+            }
+
+            ::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+
+            .empty .empty-icon img {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ─── top bar ─── -->
+    <div class="topbar">
+        <div class="brand">
+            <span class="brand-icon">
+                <img src="menu.png" alt="Menu" />
+            </span>
+            <div>
+                <h1>PDF Text Editor</h1>
+                <small>Import a notice HTML file, edit the text in place, export the result</small>
+            </div>
+        </div>
+
+        <label class="btn primary">
+            <img src="import.png" alt="Import" class="btn-icon" />
+            <span class="btn-label">Import HTML</span>
+            <input type="file" id="fileInput" accept=".html,.htm" />
+        </label>
+
+        <button class="btn" id="editToggleBtn" disabled>
+            <img src="edit.png" alt="Edit" class="btn-icon" />
+            <span class="btn-label">Editing: Off</span>
+        </button>
+        <button class="btn" id="downloadBtn" disabled>
+            <img src="download_html.png" alt="Download" class="btn-icon" />
+            <span class="btn-label">Download HTML</span>
+        </button>
+        <button class="btn" id="printBtn" disabled>
+            <img src="print.png" alt="Print" class="btn-icon" />
+            <span class="btn-label">Print / PDF</span>
+        </button>
+        <button class="btn" id="resetBtn" disabled>
+            <img src="close.png" alt="Close" class="btn-icon" />
+            <span class="btn-label">Close</span>
+        </button>
+
+        <span class="status" id="statusText">No file loaded</span>
+    </div>
+
+    <!-- ─── stage ─── -->
+    <div class="stage" id="stageEl">
+        <div class="doc-wrap">
+
+            <div id="emptyState" class="empty">
+                <div class="empty-icon">
+                    <img src="lamp.png" alt="Lamp" />
+                </div>
+                <h2>No file has been loaded</h2>
+                <p>
+                    Click "Import HTML" above and choose one of your notice files
+                    (e.g. i.html, i2.html, i3.html). It will render below exactly as
+                    designed — with its own fonts, colors and layout intact — and you'll
+                    be able to click directly on any text to edit it, no source-code
+                    editing required.
+                </p>
+                <label class="btn primary">
+                    <img src="html.png" alt="Import" class="btn-icon" />
+                    <span class="btn-label">Choose a file to import</span>
+                    <input type="file" id="fileInputEmpty" accept=".html,.htm" />
+                </label>
+            </div>
+
+            <div id="editHint" class="edit-hint">
+                <img src="edit.png" alt="Edit" class="hint-icon" />
+                <span><b>Editing is on.</b> Click any text in the notice below and start typing to change it. Press
+                    "Editing: On" to lock it again, then Download to save your version.</span>
+            </div>
+
+            <div id="frameShell" class="frame-shell">
+                <iframe id="docFrame" title="Imported notice"></iframe>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ─── floating "Open Keyboard" button ─── -->
+    <button id="openKbBtn" title="Open keyboard">
+        <img src="Keyboard1.png" alt="Keyboard" class="kb-btn-icon" />
+        Open Keyboard
+    </button>
+
+    <!-- ─── on‑screen keyboard ─── -->
+    <div id="kbPanel">
+        <div class="kb-topline">
+            <span class="kb-title">
+                <img src="Keyboard.png" alt="Keyboard" />
+                On-screen keyboard
+            </span>
+            <select id="kbLangSelect"></select>
+            <button type="button" id="kbHideBtn" title="Hide keyboard">▾ Hide</button>
+        </div>
+        <div id="kbRows"></div>
+        <div class="kb-ctrl-row">
+            <button type="button" class="kb-ctrl" id="kbShiftBtn">⇧ Shift</button>
+            <button type="button" class="kb-ctrl kb-wide" id="kbModeBtn">123</button>
+            <button type="button" class="kb-ctrl kb-space" id="kbSpaceBtn">Space</button>
+            <button type="button" class="kb-ctrl kb-wide" id="kbEnterBtn">⏎ Enter</button>
+            <button type="button" class="kb-ctrl kb-wide" id="kbBackBtn">⌫</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ─── DOM refs ───
+            const fileInput = document.getElementById('fileInput');
+            const fileInputEmpty = document.getElementById('fileInputEmpty');
+            const editToggleBtn = document.getElementById('editToggleBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const printBtn = document.getElementById('printBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const statusText = document.getElementById('statusText');
+            const emptyState = document.getElementById('emptyState');
+            const editHint = document.getElementById('editHint');
+            const frameShell = document.getElementById('frameShell');
+            const docFrame = document.getElementById('docFrame');
+            const stageEl = document.getElementById('stageEl');
+            const openKbBtn = document.getElementById('openKbBtn');
+
+            let currentFileName = 'notice.html';
+            let editing = false;
+            let kbVisible = false;
+
+            // ─── keyboard panel refs ───
+            const kbPanel = document.getElementById('kbPanel');
+            const kbRows = document.getElementById('kbRows');
+            const kbLangSelect = document.getElementById('kbLangSelect');
+            const kbHideBtn = document.getElementById('kbHideBtn');
+            const kbShiftBtn = document.getElementById('kbShiftBtn');
+            const kbModeBtn = document.getElementById('kbModeBtn');
+            const kbSpaceBtn = document.getElementById('kbSpaceBtn');
+            const kbEnterBtn = document.getElementById('kbEnterBtn');
+            const kbBackBtn = document.getElementById('kbBackBtn');
+
+            let kbMode = 'letters';
+            let kbShift = false;
+            let currentLang = 'en';
+
+            // ─── stored selection (fixes the "extend" bug) ───
+            let savedRange = null;
+            let frameReady = false;
+
+            const SYMBOL_ROWS = [
+                ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                ['@', '#', '$', '%', '&', '*', '-', '+', '(', ')'],
+                ['!', '?', '"', "'", ':', ';', '/', '\\', '_', '='],
+                ['[', ']', '{', '}', '<', '>', '~', '`', '^', '|']
+            ];
+
+            const KB_DATA = {
+                en: {
+                    label: 'English',
+                    family: 'Popular',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ]
+                },
+                bn: {
+                    label: 'বাংলা (Bengali)',
+                    family: 'Popular',
+                    digits: ['১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', '০'],
+                    rows: [
+                        ['অ', 'আ', 'ই', 'ঈ', 'উ', 'ঊ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ'],
+                        ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ', 'ছ', 'জ', 'ঝ', 'ঞ'],
+                        ['ট', 'ঠ', 'ড', 'ঢ', 'ণ', 'ত', 'থ', 'দ', 'ধ', 'ন'],
+                        ['প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'ষ', 'স', 'হ'],
+                        ['ড়', 'ঢ়', 'য়', 'ৎ', 'ং', 'ঃ', 'ঁ'],
+                        ['া', 'ি', 'ী', 'ু', 'ূ', 'ৃ', 'ে', 'ৈ', 'ো', 'ৌ', '্']
+                    ]
+                },
+                hi: {
+                    label: 'हिन्दी (Hindi)',
+                    family: 'Popular',
+                    digits: ['१', '२', '३', '४', '५', '६', '७', '८', '९', '०'],
+                    rows: [
+                        ['अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ए', 'ऐ', 'ओ', 'औ'],
+                        ['क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ'],
+                        ['ट', 'ठ', 'ड', 'ढ', 'ण', 'त', 'थ', 'द', 'ध', 'न'],
+                        ['प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व', 'श', 'ष', 'स', 'ह'],
+                        ['ं', 'ः', 'ँ', '़'],
+                        ['ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'े', 'ै', 'ो', 'ौ', '्']
+                    ]
+                },
+                mr: { label: 'मराठी (Marathi)', family: 'Indian' },
+                ne: { label: 'नेपाली (Nepali)', family: 'Indian' },
+                gu: {
+                    label: 'ગુજરાતી (Gujarati)',
+                    family: 'Indian',
+                    digits: ['૧', '૨', '૩', '૪', '૫', '૬', '૭', '૮', '૯', '૦'],
+                    rows: [
+                        ['અ', 'આ', 'ઇ', 'ઈ', 'ઉ', 'ઊ', 'ઋ', 'એ', 'ઐ', 'ઓ', 'ઔ'],
+                        ['ક', 'ખ', 'ગ', 'ઘ', 'ઙ', 'ચ', 'છ', 'જ', 'ઝ', 'ઞ'],
+                        ['ટ', 'ઠ', 'ડ', 'ઢ', 'ણ', 'ત', 'થ', 'દ', 'ધ', 'ન'],
+                        ['પ', 'ફ', 'બ', 'ભ', 'મ', 'ય', 'ર', 'લ', 'ળ', 'વ', 'શ', 'ષ', 'સ', 'હ'],
+                        ['ં', 'ઃ', '઼'],
+                        ['ા', 'િ', 'ી', 'ુ', 'ૂ', 'ૃ', 'ે', 'ૈ', 'ો', 'ૌ', '્']
+                    ]
+                },
+                pa: {
+                    label: 'ਪੰਜਾਬੀ (Punjabi)',
+                    family: 'Indian',
+                    digits: ['੧', '੨', '੩', '੪', '੫', '੬', '੭', '੮', '੯', '੦'],
+                    rows: [
+                        ['ਅ', 'ਆ', 'ਇ', 'ਈ', 'ਉ', 'ਊ', 'ਏ', 'ਐ', 'ਓ', 'ਔ'],
+                        ['ਕ', 'ਖ', 'ਗ', 'ਘ', 'ਙ', 'ਚ', 'ਛ', 'ਜ', 'ਝ', 'ਞ'],
+                        ['ਟ', 'ਠ', 'ਡ', 'ਢ', 'ਣ', 'ਤ', 'ਥ', 'ਦ', 'ਧ', 'ਨ'],
+                        ['ਪ', 'ਫ', 'ਬ', 'ਭ', 'ਮ', 'ਯ', 'ਰ', 'ਲ', 'ਲ਼', 'ਵ', 'ਸ਼', 'ਸ', 'ਹ'],
+                        ['ਂ', 'ਃ', '਼'],
+                        ['ਾ', 'ਿ', 'ੀ', 'ੁ', 'ੂ', 'ੇ', 'ੈ', 'ੋ', 'ੌ', '੍']
+                    ]
+                },
+                ta: {
+                    label: 'தமிழ் (Tamil)',
+                    family: 'Indian',
+                    digits: ['௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯', '௦'],
+                    rows: [
+                        ['அ', 'ஆ', 'இ', 'ஈ', 'உ', 'ஊ', 'எ', 'ஏ', 'ஐ', 'ஒ', 'ஓ', 'ஔ'],
+                        ['க', 'ங', 'ச', 'ஞ', 'ட', 'ண', 'த', 'ந', 'ப', 'ம'],
+                        ['ய', 'ர', 'ல', 'வ', 'ழ', 'ள', 'ற', 'ன', 'ஜ', 'ஷ', 'ஸ', 'ஹ'],
+                        ['ா', 'ி', 'ீ', 'ு', 'ூ', 'ெ', 'ே', 'ை', 'ொ', 'ோ', 'ௌ', '்']
+                    ]
+                },
+                te: {
+                    label: 'తెలుగు (Telugu)',
+                    family: 'Indian',
+                    digits: ['౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯', '౦'],
+                    rows: [
+                        ['అ', 'ఆ', 'ఇ', 'ఈ', 'ఉ', 'ఊ', 'ఋ', 'ఎ', 'ఏ', 'ఐ', 'ఒ', 'ఓ', 'ఔ'],
+                        ['క', 'ఖ', 'గ', 'ఘ', 'ఙ', 'చ', 'ఛ', 'జ', 'ఝ', 'ఞ'],
+                        ['ట', 'ఠ', 'డ', 'ఢ', 'ణ', 'త', 'థ', 'ద', 'ధ', 'న'],
+                        ['ప', 'ఫ', 'బ', 'భ', 'మ', 'య', 'ర', 'ల', 'ళ', 'వ', 'శ', 'ష', 'స', 'హ'],
+                        ['ా', 'ి', 'ీ', 'ు', 'ూ', 'ృ', 'ె', 'ే', 'ై', 'ొ', 'ో', 'ౌ', 'ం', 'ః', '్']
+                    ]
+                },
+                kn: {
+                    label: 'ಕನ್ನಡ (Kannada)',
+                    family: 'Indian',
+                    digits: ['೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯', '೦'],
+                    rows: [
+                        ['ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಋ', 'ಎ', 'ಏ', 'ಐ', 'ಒ', 'ಓ', 'ಔ'],
+                        ['ಕ', 'ಖ', 'ಗ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ', 'ಞ'],
+                        ['ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ', 'ನ'],
+                        ['ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ಳ', 'ವ', 'ಶ', 'ಷ', 'ಸ', 'ಹ'],
+                        ['ಾ', 'ಿ', 'ೀ', 'ು', 'ೂ', 'ೃ', 'ೆ', 'ೇ', 'ೈ', 'ೊ', 'ೋ', 'ೌ', 'ಂ', 'ಃ', '್']
+                    ]
+                },
+                ml: {
+                    label: 'മലയാളം (Malayalam)',
+                    family: 'Indian',
+                    digits: ['൧', '൨', '൩', '൪', '൫', '൬', '൭', '൮', '൯', '൦'],
+                    rows: [
+                        ['അ', 'ആ', 'ഇ', 'ഈ', 'ഉ', 'ഊ', 'ഋ', 'എ', 'ഏ', 'ഐ', 'ഒ', 'ഓ', 'ഔ'],
+                        ['ക', 'ഖ', 'ഗ', 'ഘ', 'ങ', 'ച', 'ഛ', 'ജ', 'ഝ', 'ഞ'],
+                        ['ട', 'ഠ', 'ഡ', 'ഢ', 'ണ', 'ത', 'ഥ', 'ദ', 'ധ', 'ന'],
+                        ['പ', 'ഫ', 'ബ', 'ഭ', 'മ', 'യ', 'ര', 'ല', 'ള', 'ഴ', 'റ', 'വ', 'ശ', 'ഷ', 'സ', 'ഹ'],
+                        ['ാ', 'ി', 'ീ', 'ു', 'ൂ', 'ൃ', 'െ', 'േ', 'ൈ', 'ൊ', 'ോ', 'ൌ', 'ം', 'ഃ', '്']
+                    ]
+                },
+                or: {
+                    label: 'ଓଡ଼ିଆ (Odia)',
+                    family: 'Indian',
+                    digits: ['୧', '୨', '୩', '୪', '୫', '୬', '୭', '୮', '୯', '୦'],
+                    rows: [
+                        ['ଅ', 'ଆ', 'ଇ', 'ଈ', 'ଉ', 'ଊ', 'ଋ', 'ଏ', 'ଐ', 'ଓ', 'ଔ'],
+                        ['କ', 'ଖ', 'ଗ', 'ଘ', 'ଙ', 'ଚ', 'ଛ', 'ଜ', 'ଝ', 'ଞ'],
+                        ['ଟ', 'ଠ', 'ଡ', 'ଢ', 'ଣ', 'ତ', 'ଥ', 'ଦ', 'ଧ', 'ନ'],
+                        ['ପ', 'ଫ', 'ବ', 'ଭ', 'ମ', 'ଯ', 'ର', 'ଲ', 'ଳ', 'ଵ', 'ଶ', 'ଷ', 'ସ', 'ହ'],
+                        ['ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 'ୃ', 'େ', 'ୈ', 'ୋ', 'ୌ', 'ଂ', 'ଃ', '୍']
+                    ]
+                },
+                as: {
+                    label: 'অসমীয়া (Assamese)',
+                    family: 'Indian',
+                    digits: ['১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', '০'],
+                    rows: [
+                        ['অ', 'আ', 'ই', 'ঈ', 'উ', 'ঊ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ'],
+                        ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ', 'ছ', 'জ', 'ঝ', 'ঞ'],
+                        ['ট', 'ঠ', 'ড', 'ঢ', 'ণ', 'ত', 'থ', 'দ', 'ধ', 'ন'],
+                        ['প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'ৰ', 'ল', 'ৱ', 'শ', 'ষ', 'স', 'হ'],
+                        ['ড়', 'ঢ়', 'য়', 'ৎ', 'ং', 'ঃ', 'ঁ'],
+                        ['া', 'ি', 'ী', 'ু', 'ূ', 'ৃ', 'ে', 'ৈ', 'ো', 'ৌ', '্']
+                    ]
+                },
+                ur: {
+                    label: 'اردو (Urdu)',
+                    family: 'Middle East',
+                    rtl: true,
+                    digits: ['۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹', '۰'],
+                    rows: [
+                        ['ا', 'آ', 'ب', 'پ', 'ت', 'ٹ', 'ث', 'ج', 'چ', 'ح', 'خ'],
+                        ['د', 'ڈ', 'ذ', 'ر', 'ڑ', 'ز', 'ژ', 'س', 'ش', 'ص', 'ض'],
+                        ['ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن'],
+                        ['و', 'ہ', 'ھ', 'ء', 'ی', 'ے']
+                    ]
+                },
+                ar: {
+                    label: 'العربية (Arabic)',
+                    family: 'Middle East',
+                    rtl: true,
+                    digits: ['١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '٠'],
+                    rows: [
+                        ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر'],
+                        ['ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف'],
+                        ['ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ء', 'ة', 'ى']
+                    ]
+                },
+                ru: {
+                    label: 'Русский (Russian)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ'],
+                        ['ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э'],
+                        ['я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю']
+                    ]
+                },
+                uk: {
+                    label: 'Українська (Ukrainian)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ї'],
+                        ['ф', 'і', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'є'],
+                        ['я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю', 'ґ']
+                    ]
+                },
+                el: {
+                    label: 'Ελληνικά (Greek)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['ς', 'ε', 'ρ', 'τ', 'υ', 'θ', 'ι', 'ο', 'π'],
+                        ['α', 'σ', 'δ', 'φ', 'γ', 'η', 'ξ', 'κ', 'λ'],
+                        ['ζ', 'χ', 'ψ', 'ω', 'β', 'ν', 'μ']
+                    ]
+                },
+                es: {
+                    label: 'Español (Spanish)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ñ'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['á', 'é', 'í', 'ó', 'ú', 'ü', '¿', '¡']
+                },
+                fr: {
+                    label: 'Français (French)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['à', 'â', 'ç', 'é', 'è', 'ê', 'ë', 'î', 'ï', 'ô', 'œ', 'ù', 'û', 'ü', 'ÿ']
+                },
+                de: {
+                    label: 'Deutsch (German)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['ä', 'ö', 'ü', 'ß']
+                },
+                it: {
+                    label: 'Italiano (Italian)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['à', 'è', 'é', 'ì', 'ò', 'ù']
+                },
+                pt: {
+                    label: 'Português (Portuguese)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['á', 'â', 'ã', 'à', 'ç', 'é', 'ê', 'í', 'ó', 'ô', 'õ', 'ú']
+                },
+                tr: {
+                    label: 'Türkçe (Turkish)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'ı', 'o', 'p', 'ğ', 'ü'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ş', 'i'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm', 'ö', 'ç']
+                    ]
+                },
+                vi: {
+                    label: 'Tiếng Việt (Vietnamese)',
+                    family: 'European',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
+                        ['ă', 'â', 'đ', 'ê', 'ô', 'ơ', 'ư']
+                    ],
+                    extra: ['á', 'à', 'ả', 'ã', 'ạ', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'í', 'ì', 'ỉ', 'ĩ', 'ị', 'ó', 'ò', 'ỏ',
+                        'õ', 'ọ', 'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ'
+                    ]
+                },
+                zh: {
+                    label: '中文 拼音 (Chinese Pinyin)',
+                    family: 'East Asian',
+                    case: true,
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                        ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                    ],
+                    extra: ['ā', 'á', 'ǎ', 'à', 'ē', 'é', 'ě', 'è', 'ī', 'í', 'ǐ', 'ì', 'ō', 'ó', 'ǒ', 'ò', 'ū', 'ú',
+                        'ǔ', 'ù', 'ǖ', 'ǘ', 'ǚ', 'ǜ'
+                    ]
+                },
+                ja: {
+                    label: '日本語 (Japanese)',
+                    family: 'East Asian',
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['あ', 'い', 'う', 'え', 'お'],
+                        ['か', 'き', 'く', 'け', 'こ'],
+                        ['さ', 'し', 'す', 'せ', 'そ'],
+                        ['た', 'ち', 'つ', 'て', 'と'],
+                        ['な', 'に', 'ぬ', 'ね', 'の'],
+                        ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+                        ['ま', 'み', 'む', 'め', 'も'],
+                        ['や', 'ゆ', 'よ'],
+                        ['ら', 'り', 'る', 'れ', 'ろ'],
+                        ['わ', 'を', 'ん']
+                    ],
+                    extra: ['が', 'ぎ', 'ぐ', 'げ', 'ご', 'ざ', 'じ', 'ず', 'ぜ', 'ぞ', 'だ', 'ぢ', 'づ', 'で', 'ど', 'ば',
+                        'び', 'ぶ', 'べ', 'ぼ', 'ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ'
+                    ]
+                },
+                ko: {
+                    label: '한국어 (Korean)',
+                    family: 'East Asian',
+                    digits: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    rows: [
+                        ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'],
+                        ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
+                        ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ']
+                    ],
+                    extra: ['ㅃ', 'ㅉ', 'ㄸ', 'ㄲ', 'ㅆ', 'ㅒ', 'ㅖ']
+                }
+            };
+
+            KB_DATA.mr = Object.assign({}, KB_DATA.hi, { label: 'मराठी (Marathi)', family: 'Indian' });
+            KB_DATA.ne = Object.assign({}, KB_DATA.hi, { label: 'नेपाली (Nepali)', family: 'Indian' });
+
+            const LANG_ORDER = ['en', 'bn', 'hi', 'mr', 'ne', 'gu', 'pa', 'ta', 'te', 'kn', 'ml', 'or', 'as', 'ur', 'ar',
+                'ru', 'uk', 'el', 'es', 'fr', 'de', 'it', 'pt', 'tr', 'vi', 'zh', 'ja', 'ko'
+            ];
+
+            // ─── keyboard helpers ───
+            function populateLangSelect() {
+                const families = {};
+                LANG_ORDER.forEach(code => {
+                    const fam = KB_DATA[code].family || 'Other';
+                    (families[fam] = families[fam] || []).push(code);
+                });
+                Object.keys(families).forEach(fam => {
+                    const og = document.createElement('optgroup');
+                    og.label = fam;
+                    families[fam].forEach(code => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = KB_DATA[code].label;
+                        og.appendChild(opt);
+                    });
+                    kbLangSelect.appendChild(og);
+                });
+                kbLangSelect.value = currentLang;
+            }
+
+            function makeRow(chars, upper) {
+                const row = document.createElement('div');
+                row.className = 'kb-row';
+                chars.forEach(ch => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'kb-key';
+                    btn.textContent = upper ? ch.toUpperCase() : ch;
+                    row.appendChild(btn);
+                });
+                return row;
+            }
+
+            function buildKeyboard() {
+                const lang = KB_DATA[currentLang];
+                kbRows.innerHTML = '';
+                kbRows.dir = lang.rtl ? 'rtl' : 'ltr';
+                kbShiftBtn.style.display = (lang.case && kbMode === 'letters') ? '' : 'none';
+                kbShiftBtn.classList.toggle('active', kbShift);
+                kbModeBtn.textContent = kbMode === 'letters' ? '123' : 'ABC';
+
+                if (kbMode === 'symbols') {
+                    SYMBOL_ROWS.forEach(r => kbRows.appendChild(makeRow(r, false)));
+                } else {
+                    const upper = !!(lang.case && kbShift);
+                    kbRows.appendChild(makeRow(lang.digits, false));
+                    lang.rows.forEach(r => kbRows.appendChild(makeRow(r, upper)));
+                    if (lang.extra) kbRows.appendChild(makeRow(lang.extra, false));
+                }
+                syncPanelHeight();
+            }
+
+            function syncPanelHeight() {
+                requestAnimationFrame(() => {
+                    const h = kbPanel.classList.contains('open') ? kbPanel.offsetHeight : 0;
+                    const pad = h ? (h + 12) : 0;
+                    document.body.style.paddingBottom = pad + 'px';
+                });
+            }
+
+            function scrollStageToVisible() {
+                const stageRect = stageEl.getBoundingClientRect();
+                const kbRect = kbPanel.getBoundingClientRect();
+                if (kbRect.height === 0) return;
+                const overlap = stageRect.bottom - kbRect.top;
+                if (overlap > 0) {
+                    stageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    stageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            function showKeyboard() {
+                kbPanel.classList.add('open');
+                kbVisible = true;
+                openKbBtn.style.display = 'none';
+                syncPanelHeight();
+                requestAnimationFrame(() => {
+                    scrollStageToVisible();
+                });
+            }
+
+            function hideKeyboard() {
+                kbPanel.classList.remove('open');
+                kbVisible = false;
+                document.body.style.paddingBottom = '';
+                if (editing) {
+                    openKbBtn.style.display = 'flex';
+                } else {
+                    openKbBtn.style.display = 'none';
+                }
+                syncPanelHeight();
+            }
+
+            function toggleKeyboard(forceShow) {
+                const shouldShow = (forceShow !== undefined) ? forceShow : !kbVisible;
+                if (shouldShow && editing) {
+                    showKeyboard();
+                } else {
+                    hideKeyboard();
+                }
+            }
+
+            // ─── iframe selection helpers (with saved range) ───
+            function getIframeSelection() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return null;
+                    const sel = win.getSelection();
+                    if (sel && sel.rangeCount > 0 && doc.body.contains(sel.anchorNode)) {
+                        return sel;
+                    }
+                    return null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function saveSelection() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return;
+                    const sel = win.getSelection();
+                    if (sel && sel.rangeCount > 0 && doc.body.contains(sel.anchorNode)) {
+                        savedRange = sel.getRangeAt(0).cloneRange();
+                    }
+                } catch (e) {}
+            }
+
+            function restoreOrCreateSelection() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return null;
+                    let sel = win.getSelection();
+                    if (!sel) return null;
+
+                    if (sel.rangeCount > 0 && doc.body.contains(sel.anchorNode)) {
+                        return sel;
+                    }
+
+                    if (savedRange) {
+                        try {
+                            sel.removeAllRanges();
+                            const range = savedRange.cloneRange();
+                            sel.addRange(range);
+                            return sel;
+                        } catch (e) {
+                            savedRange = null;
+                        }
+                    }
+
+                    const range = doc.createRange();
+                    range.selectNodeContents(doc.body);
+                    range.collapse(false);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    return sel;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // ─── text insertion using execCommand (clean) ───
+            function insertAtCursor(text) {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return;
+
+                    win.focus();
+
+                    const sel = restoreOrCreateSelection();
+                    if (!sel) return;
+
+                    if (doc.execCommand) {
+                        doc.execCommand('insertText', false, text);
+                    } else {
+                        const range = sel.getRangeAt(0);
+                        range.deleteContents();
+                        const node = doc.createTextNode(text);
+                        range.insertNode(node);
+                        range.setStartAfter(node);
+                        range.setEndAfter(node);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+
+                    saveSelection();
+                    resizeFrame();
+                    scrollCaretIntoView();
+                } catch (e) {}
+            }
+
+            function insertLineBreak() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return;
+                    win.focus();
+                    const sel = restoreOrCreateSelection();
+                    if (!sel) return;
+                    if (doc.execCommand) {
+                        doc.execCommand('insertParagraph', false, null);
+                    } else {
+                        const range = sel.getRangeAt(0);
+                        range.deleteContents();
+                        const br = doc.createElement('br');
+                        range.insertNode(br);
+                        range.setStartAfter(br);
+                        range.setEndAfter(br);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                    saveSelection();
+                    resizeFrame();
+                    scrollCaretIntoView();
+                } catch (e) {}
+            }
+
+            function backspaceAtCursor() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc || !doc.body) return;
+                    win.focus();
+                    const sel = restoreOrCreateSelection();
+                    if (!sel) return;
+                    if (doc.execCommand) {
+                        doc.execCommand('delete', false, null);
+                    } else {
+                        const range = sel.getRangeAt(0);
+                        if (!range.collapsed) {
+                            range.deleteContents();
+                        } else if (typeof sel.modify === 'function') {
+                            sel.modify('extend', 'backward', 'character');
+                            const r = sel.getRangeAt(0);
+                            r.deleteContents();
+                        }
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                    saveSelection();
+                    resizeFrame();
+                    scrollCaretIntoView();
+                } catch (e) {}
+            }
+
+            function scrollCaretIntoView() {
+                try {
+                    const win = docFrame.contentWindow;
+                    const doc = docFrame.contentDocument;
+                    if (!win || !doc) return;
+                    const sel = win.getSelection();
+                    if (sel && sel.rangeCount > 0) {
+                        const range = sel.getRangeAt(0);
+                        const rect = range.getClientRects ? range.getClientRects()[0] : null;
+                        if (rect) {
+                            const iframeRect = docFrame.getBoundingClientRect();
+                            const caretTop = rect.top + iframeRect.top;
+                            const viewportHeight = window.innerHeight;
+                            const kbHeight = kbPanel.classList.contains('open') ? kbPanel.offsetHeight : 0;
+                            if (caretTop > viewportHeight - kbHeight - 60) {
+                                stageEl.scrollBy({ top: 80, behavior: 'smooth' });
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // ─── resize frame ───
+            let resizeTimeout = null;
+
+            function resizeFrame() {
+                if (resizeTimeout) {
+                    cancelAnimationFrame(resizeTimeout);
+                }
+                resizeTimeout = requestAnimationFrame(() => {
+                    try {
+                        const doc = docFrame.contentDocument;
+                        if (!doc) return;
+                        let h = doc.documentElement.scrollHeight;
+                        if (doc.body) {
+                            h = Math.max(h, doc.body.scrollHeight);
+                        }
+                        h = Math.max(h, 200);
+                        docFrame.style.height = (h + 20) + 'px';
+                    } catch (e) {}
+                    resizeTimeout = null;
+                });
+            }
+
+            // ─── load file ───
+            function setStatus(text, ok) {
+                statusText.textContent = text;
+                statusText.className = 'status' + (ok ? ' ok' : '');
+            }
+
+            function loadFile(file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentFileName = file.name || 'notice.html';
+                    const html = e.target.result;
+
+                    emptyState.style.display = 'none';
+                    frameShell.style.display = 'block';
+
+                    docFrame.onload = function() {
+                        try {
+                            const doc = docFrame.contentDocument;
+                            if (doc) {
+                                doc.querySelectorAll('script').forEach(s => s.remove());
+                                doc.addEventListener('selectionchange', function() {
+                                    saveSelection();
+                                });
+                                doc.addEventListener('focusin', function() {
+                                    saveSelection();
+                                    if (editing && !kbVisible) {
+                                        showKeyboard();
+                                    }
+                                });
+                                doc.addEventListener('click', function() {
+                                    saveSelection();
+                                });
+                                docFrame.contentWindow.addEventListener('focus', function() {
+                                    saveSelection();
+                                });
+                            }
+                            resizeFrame();
+                            setTimeout(() => {
+                                try {
+                                    docFrame.contentWindow.focus();
+                                    saveSelection();
+                                } catch (_) {}
+                            }, 150);
+                        } catch (err) {}
+                    };
+
+                    docFrame.srcdoc = html;
+
+                    editing = false;
+                    editToggleBtn.innerHTML =
+                        '<img src="edit.png" alt="Edit" class="btn-icon"> <span class="btn-label">Editing: Off</span>';
+                    editHint.style.display = 'none';
+                    editToggleBtn.disabled = false;
+                    downloadBtn.disabled = false;
+                    printBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    openKbBtn.style.display = 'none';
+                    hideKeyboard();
+                    savedRange = null;
+                    setStatus('Loaded: ' + currentFileName, true);
+                };
+                reader.onerror = function() {
+                    setStatus('Could not read that file', false);
+                };
+                reader.readAsText(file);
+            }
+
+            fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+            fileInputEmpty.addEventListener('change', e => loadFile(e.target.files[0]));
+
+            // ─── edit toggle ───
+            editToggleBtn.addEventListener('click', function() {
+                try {
+                    const doc = docFrame.contentDocument;
+                    if (!doc) return;
+                    editing = !editing;
+                    doc.designMode = editing ? 'on' : 'off';
+                    editToggleBtn.innerHTML = editing ?
+                        '<img src="edit.png" alt="Edit" class="btn-icon"> <span class="btn-label">Editing: On</span>' :
+                        '<img src="edit.png" alt="Edit" class="btn-icon"> <span class="btn-label">Editing: Off</span>';
+                    editHint.style.display = editing ? 'flex' : 'none';
+                    if (editing) {
+                        docFrame.contentWindow.focus();
+                        saveSelection();
+                        showKeyboard();
+                        setTimeout(() => {
+                            try {
+                                docFrame.contentWindow.focus();
+                                restoreOrCreateSelection();
+                            } catch (_) {}
+                        }, 250);
+                    } else {
+                        hideKeyboard();
+                        openKbBtn.style.display = 'none';
+                    }
+                    setStatus(editing ? 'Editing enabled — click text to change it' : 'Editing locked', true);
+                } catch (err) {
+                    setStatus('Could not enable editing on this file', false);
+                }
+            });
+
+            // ─── download ───
+            downloadBtn.addEventListener('click', function() {
+                try {
+                    const doc = docFrame.contentDocument;
+                    if (!doc) return;
+                    const wasEditing = doc.designMode === 'on';
+                    doc.designMode = 'off';
+                    const htmlOut = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+                    if (wasEditing) doc.designMode = 'on';
+
+                    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_html) {
+                        window.pywebview.api.save_html(htmlOut)
+                            .then(result => setStatus(result, true))
+                            .catch(err => setStatus('Save failed: ' + err.message, false));
+                    } else {
+                        const blob = new Blob([htmlOut], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        const base = currentFileName.replace(/\.html?$/i, '');
+                        a.href = url;
+                        a.download = base + '-edited.html';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        setStatus('Downloaded ' + a.download, true);
+                    }
+                } catch (err) {
+                    setStatus('Download failed: ' + err.message, false);
+                }
+            });
+
+            // ─── print ───
+            printBtn.addEventListener('click', function() {
+                try {
+                    docFrame.contentWindow.focus();
+                    docFrame.contentWindow.print();
+                } catch (err) {
+                    setStatus('Print failed', false);
+                }
+            });
+
+            // ─── reset ───
+            resetBtn.addEventListener('click', function() {
+                docFrame.srcdoc = '';
+                docFrame.style.height = '';
+                frameShell.style.display = 'none';
+                emptyState.style.display = 'block';
+                editing = false;
+                editToggleBtn.innerHTML =
+                    '<img src="edit.png" alt="Edit" class="btn-icon"> <span class="btn-label">Editing: Off</span>';
+                editHint.style.display = 'none';
+                editToggleBtn.disabled = true;
+                downloadBtn.disabled = true;
+                printBtn.disabled = true;
+                resetBtn.disabled = true;
+                fileInput.value = '';
+                fileInputEmpty.value = '';
+                openKbBtn.style.display = 'none';
+                hideKeyboard();
+                savedRange = null;
+                setStatus('No file loaded');
+            });
+
+            // ─── keyboard event bindings ───
+            kbPanel.addEventListener('mousedown', function(e) {
+                if (e.target.closest('.kb-key, .kb-ctrl')) {
+                    e.preventDefault();
+                }
+            });
+
+            kbRows.addEventListener('click', function(e) {
+                const key = e.target.closest('.kb-key');
+                if (!key) return;
+                insertAtCursor(key.textContent);
+            });
+
+            kbShiftBtn.addEventListener('click', function() {
+                kbShift = !kbShift;
+                buildKeyboard();
+            });
+
+            kbModeBtn.addEventListener('click', function() {
+                kbMode = kbMode === 'letters' ? 'symbols' : 'letters';
+                buildKeyboard();
+            });
+
+            kbSpaceBtn.addEventListener('click', function() {
+                insertAtCursor(' ');
+            });
+
+            kbEnterBtn.addEventListener('click', function() {
+                insertLineBreak();
+            });
+
+            kbBackBtn.addEventListener('click', function() {
+                backspaceAtCursor();
+            });
+
+            kbLangSelect.addEventListener('change', function() {
+                currentLang = kbLangSelect.value;
+                kbShift = false;
+                buildKeyboard();
+            });
+
+            kbHideBtn.addEventListener('click', function() {
+                hideKeyboard();
+            });
+
+            // ─── floating "Open Keyboard" button ───
+            openKbBtn.addEventListener('click', function() {
+                if (editing) {
+                    showKeyboard();
+                    setTimeout(() => {
+                        try {
+                            docFrame.contentWindow.focus();
+                            restoreOrCreateSelection();
+                        } catch (_) {}
+                        scrollStageToVisible();
+                    }, 300);
+                }
+            });
+
+            // ─── keyboard shortcuts in iframe ───
+            docFrame.addEventListener('load', function() {
+                try {
+                    const doc = docFrame.contentDocument;
+                    if (!doc) return;
+                    doc.addEventListener('keydown', function() {
+                        setTimeout(saveSelection, 10);
+                    });
+                    doc.addEventListener('click', function() {
+                        saveSelection();
+                    });
+                    doc.addEventListener('focusin', function() {
+                        saveSelection();
+                    });
+                } catch (e) {}
+            });
+
+            // ─── init ───
+            populateLangSelect();
+            buildKeyboard();
+            hideKeyboard();
+
+            // ─── window resize ───
+            window.addEventListener('resize', function() {
+                resizeFrame();
+                syncPanelHeight();
+            });
+
+            // ─── additional: save selection when iframe loses focus ───
+            document.addEventListener('focusin', function(e) {
+                if (e.target !== docFrame && !docFrame.contains(e.target)) {
+                    saveSelection();
+                }
+            });
+
+        })();
+    </script>
+
+</body>
+
+</html>
