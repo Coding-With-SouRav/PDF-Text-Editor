@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Life Cycle of a Tree</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
+            background-color: #FAF7F2;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #2D372E;
+            background-color: #FAF7F2;
+            line-height: 1.45;
+            font-size: 9.5pt;
+        }
+
+        /* Header Banner */
+        .header {
+            text-align: center;
+            padding: 14pt 10pt;
+            background-color: #2C4A2E;
+            color: #F4EFEA;
+            border-radius: 6pt;
+            margin-bottom: 14pt;
+        }
+
+        .header h1 {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 20pt;
+            font-weight: 700;
+            margin: 0 0 4pt 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #E8F0E6;
+        }
+
+        .header p {
+            font-size: 10pt;
+            font-style: italic;
+            margin: 0;
+            color: #C2D6C1;
+        }
+
+        .intro {
+            font-size: 9.5pt;
+            text-align: justify;
+            margin-bottom: 14pt;
+            color: #4A5D4C;
+            border-left: 3pt solid #4A7C59;
+            padding-left: 10pt;
+        }
+
+        /* Timeline Flow / Layout */
+        .lifecycle-container {
+            width: 100%;
+        }
+
+        .stage-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E2DED4;
+            border-radius: 6pt;
+            padding: 10pt 12pt;
+            margin-bottom: 10pt;
+            position: relative;
+        }
+
+        .stage-header {
+            border-bottom: 1px solid #EAE6DF;
+            padding-bottom: 4pt;
+            margin-bottom: 6pt;
+        }
+
+        .stage-number {
+            display: inline-block;
+            background-color: #4A7C59;
+            color: #FFFFFF;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 8.5pt;
+            font-weight: bold;
+            padding: 2pt 6pt;
+            border-radius: 3pt;
+            text-transform: uppercase;
+            margin-right: 6pt;
+        }
+
+        .stage-title {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1B331E;
+            display: inline;
+        }
+
+        .stage-subtitle {
+            font-size: 8.5pt;
+            color: #7A8B7C;
+            float: right;
+            font-style: italic;
+            margin-top: 2pt;
+        }
+
+        .stage-body {
+            font-size: 9pt;
+            color: #38473A;
+        }
+
+        .stage-body p {
+            margin: 0 0 4pt 0;
+        }
+
+        .key-fact {
+            background-color: #F0F5F0;
+            border-radius: 4pt;
+            padding: 4pt 8pt;
+            font-size: 8.5pt;
+            color: #2C4A2E;
+            margin-top: 4pt;
+        }
+
+        .key-fact strong {
+            color: #1B331E;
+        }
+
+        /* Footer Section */
+        .footer-summary {
+            margin-top: 12pt;
+            background-color: #E8EFE9;
+            border-radius: 6pt;
+            padding: 10pt 12pt;
+            border: 1px dashed #A3C1A5;
+        }
+
+        .footer-summary h3 {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            margin: 0 0 4pt 0;
+            color: #1B331E;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-summary p {
+            margin: 0;
+            font-size: 8.5pt;
+            color: #38473A;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>The Life Cycle of a Tree</h1>
+        <p>From a Tiny Seed to a Forest Giant and Beyond</p>
+    </div>
+
+    <div class="intro">
+        Trees are among the oldest and longest-living organisms on Earth. Their life cycle is a continuous, awe-inspiring journey of growth, adaptation, and ecological contribution—spanning decades to centuries across distinct developmental stages.
+    </div>
+
+    <div class="lifecycle-container">
+
+        <!-- Stage 1 -->
+        <div class="stage-card">
+            <div class="stage-header">
+                <span class="stage-number">Stage 1</span>
+                <span class="stage-title">The Seed & Dormancy</span>
+                <span class="stage-subtitle">Beginning of Life</span>
+            </div>
+            <div class="stage-body">
+                <p>Every tree starts as a seed containing an embryo and stored nutrients protected by a outer coat. Seeds are dispersed by wind, water, animals, or gravity, waiting for optimal moisture, temperature, and light conditions to break dormancy.</p>
+                <div class="key-fact">
+                    <strong>Key Process:</strong> <em>Germination</em> — The seed absorbs water, expands, and sends down a primary root (radicle) while pushing a tiny shoot upward toward the sun.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="stage-card">
+            <div class="stage-header">
+                <span class="stage-number">Stage 2</span>
+                <span class="stage-title">Sprout & Seedling</span>
+                <span class="stage-subtitle">Early Vulnerability</span>
+            </div>
+            <div class="stage-body">
+                <p>As the shoot breaks through the soil, first leaves (cotyledons or true leaves) unfold to begin photosynthesis. At this tender stage, the seedling depends heavily on adequate sunlight and soil moisture while building its initial root system.</p>
+                <div class="key-fact">
+                    <strong>Milestone:</strong> Developing self-sufficiency through photosynthesis, turning sunlight, water, and CO₂ into essential plant sugars.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="stage-card">
+            <div class="stage-header">
+                <span class="stage-number">Stage 3</span>
+                <span class="stage-title">Sapling</span>
+                <span class="stage-subtitle">Rapid Growth Phase</span>
+            </div>
+            <div class="stage-body">
+                <p>When the stem thickens and develops a flexible, woody exterior, the seedling transitions into a sapling (typically 1 to 4 inches in trunk diameter). During this rapid growth spurt, the tree stretches toward canopy openings while expanding its underground root network.</p>
+                <div class="key-fact">
+                    <strong>Characteristics:</strong> Smooth bark, green flexible stems, and non-reproductive status as energy is funneled purely into height and root depth.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="stage-card">
+            <div class="stage-header">
+                <span class="stage-number">Stage 4</span>
+                <span class="stage-title">Mature Tree</span>
+                <span class="stage-subtitle">Reproductive Peak</span>
+            </div>
+            <div class="stage-body">
+                <p>The tree reaches its full height and develops a wide, leaf-dense crown. Its bark thickens and toughens, providing defense against pests, weather, and fires. The mature tree actively reproduces by producing flowers, cones, fruits, or nuts to disperse a new generation of seeds.</p>
+                <div class="key-fact">
+                    <strong>Ecological Value:</strong> Provides vital wildlife habitat, massive carbon sequestration, oxygen production, and soil stabilization.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="stage-card">
+            <div class="stage-header">
+                <span class="stage-number">Stage 5</span>
+                <span class="stage-title">Decline, Snag & Decomposition</span>
+                <span class="stage-subtitle">Returning to the Earth</span>
+            </div>
+            <div class="stage-body">
+                <p>In old age, growth slows and canopy branches die back. Eventually, the standing dead tree (a <em>snag</em>) falls. Fungi, insects, and bacteria break down the wood, returning rich organic nutrients to the soil to nourish future seedlings.</p>
+                <div class="key-fact">
+                    <strong>Cycle Completion:</strong> The decaying tree enriches the forest floor, proving that death fuels new life in the forest ecosystem.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-summary">
+        <h3>The Ecological Circle</h3>
+        <p>The life cycle of a tree is never truly linear—it is a closed continuous loop. Even in death, a tree nourishes the soil, creates micro-habitats, and provides the essential foundation for the next generation of seeds to sprout and thrive.</p>
+    </div>
+
+</body>
+</html>
